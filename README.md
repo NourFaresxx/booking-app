@@ -165,7 +165,37 @@ src/
   utils/        # tokens, timezone maths
 scripts/        # seed, promoteUser
 tests/
+frontend/       # React + Vite customer web app (see below)
 ```
+
+## Frontend
+
+`frontend/` is a React + Vite app covering the customer-facing flow: register/
+log in, browse and search resources, pick an available slot, pay with Stripe
+Elements, and view/cancel bookings. Staff/admin actions (managing resources,
+analytics) aren't in the UI — use `/api/docs` or the scripts above for those.
+
+```bash
+cd frontend
+npm install
+cp .env.example .env    # API URL + Stripe PUBLISHABLE key
+npm run dev              # http://localhost:5173
+```
+
+Also set `CLIENT_URL=http://localhost:5173` in the API's own `.env` so CORS
+allows the dev server to call it.
+
+Notes:
+
+- The access token lives in memory only (never `localStorage`); only the
+  refresh token is persisted, and the client transparently refreshes once on
+  a 401. A reload always costs one 401-then-refresh round trip by design —
+  there's no way to know the in-memory token is stale without trying it, and
+  persisting it to survive reloads would mean keeping it somewhere an XSS
+  payload could read it.
+- `VITE_STRIPE_PUBLISHABLE_KEY` must be the publishable key from the *same*
+  Stripe account as the API's `STRIPE_SECRET_KEY`, or Stripe Elements will
+  mount but silently fail to render actual payment fields.
 
 ## API overview
 
@@ -228,7 +258,8 @@ Put the printed `whsec_...` value in `STRIPE_WEBHOOK_SECRET`.
 
 ## Possible extensions
 
-- Deploy to Render/Railway + MongoDB Atlas, and add a frontend
+- Deploy to Render/Railway + MongoDB Atlas, and the frontend to Vercel/Netlify
+- A staff/admin UI (resource management, analytics) alongside the customer one
 - Per-session refresh tokens so multiple devices can stay logged in
 - Waitlists: offer a freed seat to the next person in line
 - Recurring bookings ("every Monday for 8 weeks")
