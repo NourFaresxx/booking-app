@@ -2,18 +2,21 @@
 
 A REST API for booking time-limited resources (classes, rooms, equipment) with
 JWT authentication, role-based access control, Stripe payments, and
-concurrency-safe booking to prevent overbooking.
+concurrency-safe booking that cannot overbook a slot.
 
 ## Features
 
-- **Auth**: JWT access + refresh tokens (rotated on refresh), bcrypt password hashing, rate-limited login/register
-- **RBAC**: `admin` / `staff` / `customer` roles enforced via middleware
-- **Resources**: CRUD with text search, price filtering, pagination, sorting
-- **Bookings**: capacity-aware booking using MongoDB transactions to prevent race conditions
-- **Payments**: Stripe PaymentIntents + webhook to confirm/cancel bookings on payment result
+- **Auth**: JWT access + refresh tokens (rotated on refresh), bcrypt password hashing, rate-limited credential endpoints
+- **RBAC**: `admin` / `staff` / `customer` roles, plus per-resource ownership checks
+- **Resources**: CRUD with text search, price filtering, pagination, and allow-listed sorting
+- **Recurring availability**: weekly opening hours in the resource's own timezone, expanded into bookable slots on demand — no pre-created slot rows
+- **Bookings**: capacity-safe booking, automatic release of abandoned checkouts, refund on cancellation
+- **Payments**: Stripe PaymentIntents with an idempotent webhook that reconciles bookings against payment outcomes
+- **Analytics**: bookings, revenue, refunds and seat utilisation, scoped by resource ownership
+- **Notifications**: confirmation / cancellation / expiry emails over SMTP, logged instead when SMTP isn't configured
 - **Validation**: Zod schemas on every write endpoint
-- **Docs**: OpenAPI/Swagger UI at `/api/docs`
-- **Tests**: Jest + Supertest, including a concurrency test that fires simultaneous booking requests to prove capacity limits hold
+- **Docs**: OpenAPI 3 at `/api/docs`, raw spec at `/api/openapi.json`
+- **Tests**: 128 Jest + Supertest tests, including concurrency, webhook idempotency and capacity-release coverage
 
 ## Stack
 
@@ -23,11 +26,21 @@ Node.js, Express, MongoDB/Mongoose, JWT, Stripe, Zod, Jest.
 
 ```bash
 npm install
-cp .env.example .env   # fill in MongoDB URI, JWT secrets, Stripe keys
+cp .env.example .env    # fill in MongoDB URI, two JWT secrets, Stripe keys
+npm run seed            # optional: demo users and resources
 npm run dev
 ```
 
 API docs: `http://localhost:5000/api/docs`
+
+The seed script creates `admin@example.com`, `staff@example.com` and
+`customer@example.com`, all with the password `password123`.
+
+To change someone's role:
+
+```bash
+npm run promote -- someone@example.com staff
+```
 
 ### Running tests
 
@@ -35,44 +48,188 @@ API docs: `http://localhost:5000/api/docs`
 npm test
 ```
 
-The concurrency test spins up an in-memory MongoDB replica set (required for
-transactions) via `mongodb-memory-server` — no external database needed.
+The suite spins up one in-memory MongoDB replica set for the whole run
+(`mongodb-memory-server`) — no external database needed. A replica set rather
+than a standalone server, because transactions require one.
 
 ## Why this exists
 
 Most CRUD-API portfolio projects skip the parts that actually come up in
-backend interviews: race conditions, payment reconciliation, and refresh
-token rotation. This project exists to have working, tested code for those
-specifically:
+backend interviews: race conditions, payment reconciliation, and token
+handling. This project exists to have working, tested code for those.
 
-- **Overbooking prevention**: booking creation runs inside a MongoDB
-  transaction that checks current capacity and inserts atomically, with
-  retry-on-conflict. See `src/controllers/bookingController.js` and the test
-  in `tests/booking.concurrency.test.js`.
-- **Payment reconciliation**: Stripe isn't transactional with MongoDB, so
-  bookings start as `pending` and only flip to `confirmed` when the Stripe
-  webhook confirms payment — not optimistically on the initial request.
-- **Refresh token rotation**: each refresh invalidates the previous refresh
-  token (hash stored, compared, replaced), reducing the blast radius of a
-  leaked token.
+### Overbooking is prevented by a counter, not by a transaction
+
+The obvious approach — count active bookings, insert if under capacity, wrap
+it in a transaction — **does not work**, and the reason is worth knowing.
+MongoDB transactions detect a conflict only when two transactions touch the
+*same document*. Two concurrent requests each inserting a brand-new `Booking`
+never collide, so every request reads the same pre-insert count and they all
+pass the capacity check. The transaction provides no protection at all.
+
+Instead, capacity lives as a counter on a single `BookingSlot` document per
+`(resource, slotStart)`. Reserving a seat is one conditional update:
+
+```js
+BookingSlot.findOneAndUpdate(
+  { resourceId, slotStart, $expr: { $lt: ['$bookedCount', '$capacity'] } },
+  { $inc: { bookedCount: 1 } }
+)
+```
+
+Single-document updates are atomic in MongoDB, so the check and the increment
+cannot interleave. `tests/booking.concurrency.test.js` fires simultaneous
+requests at a 3-seat and a 1-seat slot and asserts the counts hold.
+
+One consequence worth noting: the slot counter document must be created
+*outside* the transaction. Inside one, losing the create race raises a
+duplicate-key error that aborts the whole transaction — and an aborted
+transaction can't be continued, even though the error itself is harmless.
+
+### Every seat release is exactly-once
+
+A seat is freed on cancellation, on payment failure, and on checkout expiry —
+and Stripe delivers webhooks at least once, so each of those can arrive twice.
+Every release is therefore gated on a conditional status transition:
+
+```js
+Booking.findOneAndUpdate({ _id, status: 'pending' }, { status: 'cancelled' })
+```
+
+Only the caller whose update actually matched goes on to decrement the
+counter. A redelivered event finds the booking already moved and does nothing,
+so the counter can't drift. Webhook event ids are also recorded in a
+deduplication collection, and the `$gt: 0` guard on the decrement is a final
+backstop against a negative count.
+
+### Abandoned checkouts don't leak capacity
+
+A booking starts as `pending` and holds a seat. If payment is never completed,
+that seat would be held forever — every abandoned checkout permanently
+shrinking the slot. Pending bookings carry an `expiresAt`, and a sweeper
+(`src/jobs/bookingMaintenance.js`) expires them and returns the seat.
+
+The sweeper's transition is conditional too, so a payment that confirms in the
+same moment is never expired out from under the customer. And if a payment
+lands *after* expiry, the webhook refunds it rather than confirming a booking
+whose seat may already have been resold.
+
+### Payment reconciliation
+
+Stripe can't participate in a MongoDB transaction, so bookings are created
+first and confirmed only when the webhook reports success — never
+optimistically. The one case that needs undoing by hand is a payment intent
+that can't be created at all: there the booking is cancelled and the seat
+released explicitly, because there is no webhook coming to reconcile it.
+
+### Refresh token rotation (and why bcrypt was wrong for it)
+
+Each refresh invalidates the previous refresh token: the stored hash is
+compared, then replaced.
+
+The stored hash is SHA-256, not bcrypt, which matters more than it looks.
+bcrypt ignores everything past the first 72 bytes of its input, and a JWT's
+first 72 bytes are the fixed header plus the beginning of `{"sub":"<user id>`
+— byte-identical for every token that user will ever be issued. bcrypt
+therefore could not distinguish one of a user's refresh tokens from another,
+and rotation silently failed to invalidate anything. bcrypt is also simply the
+wrong tool: its cost exists to slow brute force against low-entropy human
+passwords, while a signed JWT already carries full-strength HMAC entropy.
+Passwords still use bcrypt, capped at 72 bytes so nothing is truncated.
+
+`tests/tokens.test.js` demonstrates the bcrypt collision directly.
+
+### Recurring availability
+
+Slots are generated from weekly opening hours rather than stored, so a
+resource's schedule is four rows instead of thousands of slot documents.
+Opening hours are wall-clock times in the resource's own IANA timezone, so
+"Mondays 09:00" stays 09:00 local across a DST change instead of drifting by
+an hour. `src/utils/timezone.js` does this with `Intl` alone, no date library.
+
+Booking validates the requested `slotStart` against the same generator, so an
+arbitrary timestamp can't be booked on a resource that isn't open then.
 
 ## Project structure
 
 ```
 src/
-  config/       # db connection, swagger
+  config/       # db connection, OpenAPI spec
   controllers/  # route handlers
+  jobs/         # pending-booking expiry and completion sweeper
   middleware/   # auth, validation, error handling
   models/       # Mongoose schemas
-  routes/       # Express routers
+  routes/       # Express routers + OpenAPI annotations
   schemas/      # Zod validation schemas
-  services/     # Stripe integration
+  services/     # slots, availability, payments, notifications
+  utils/        # tokens, timezone maths
+scripts/        # seed, promoteUser
 tests/
 ```
 
+## API overview
+
+| Method | Path | Access |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | public |
+| `POST` | `/api/auth/login` | public |
+| `POST` | `/api/auth/refresh` | public |
+| `GET` | `/api/auth/me` | authenticated |
+| `POST` | `/api/auth/logout` | authenticated |
+| `GET` | `/api/resources` | public |
+| `GET` | `/api/resources/:id` | public |
+| `GET` | `/api/resources/:id/availability` | public |
+| `POST` | `/api/resources` | staff, admin |
+| `PATCH` | `/api/resources/:id` | owner, admin |
+| `DELETE` | `/api/resources/:id` | owner, admin |
+| `POST` | `/api/bookings` | authenticated |
+| `GET` | `/api/bookings/me` | authenticated |
+| `GET` | `/api/bookings/:id` | owner, staff, admin |
+| `PATCH` | `/api/bookings/:id/cancel` | owner, staff, admin |
+| `GET` | `/api/bookings` | staff, admin |
+| `GET` | `/api/analytics/overview` | staff, admin |
+| `POST` | `/api/webhooks/stripe` | Stripe signature |
+| `GET` | `/health` | public |
+
+All money values are integers in the minor currency unit (cents).
+
+### Booking flow
+
+1. `GET /api/resources/:id/availability` → pick a slot with `bookable: true`
+2. `POST /api/bookings` with that slot's `start` → `pending` booking + `clientSecret` + `expiresAt`
+3. Confirm the payment client-side with the `clientSecret`
+4. Stripe calls `POST /api/webhooks/stripe` → booking becomes `confirmed`
+
+If step 3 never happens, the sweeper expires the booking and frees the seat.
+
+### Local webhook testing
+
+```bash
+stripe listen --forward-to localhost:5000/api/webhooks/stripe
+```
+
+Put the printed `whsec_...` value in `STRIPE_WEBHOOK_SECRET`.
+
+## Notes and limitations
+
+- **Transactions need a replica set.** MongoDB Atlas provides one; a bare
+  local `mongod` does not.
+- **One refresh token per user.** Logging in on a second device invalidates the
+  first. Supporting concurrent sessions means storing a set of token hashes.
+- **The maintenance sweeper assumes a single process.** Several instances
+  behind a load balancer would each sweep. That stays *correct*, because every
+  transition is a conditional update, but it duplicates work; a real
+  deployment should elect one scheduler or take a lock.
+- **Overnight opening hours** must be entered as two same-day windows.
+- **Analytics utilisation** is measured over slots that saw at least one
+  booking, not over every slot the opening hours imply.
+- **Graceful shutdown relies on POSIX signals**, so it is inert on Windows,
+  where the process is terminated outright. It works on any Linux deployment.
+
 ## Possible extensions
 
-- Email notifications on booking confirmation/cancellation
-- Admin analytics endpoint (bookings per resource, revenue over time)
-- Recurring availability instead of manually-created slots
-- Deploy to Render/Railway + MongoDB Atlas, add a minimal frontend
+- Deploy to Render/Railway + MongoDB Atlas, and add a frontend
+- Per-session refresh tokens so multiple devices can stay logged in
+- Waitlists: offer a freed seat to the next person in line
+- Recurring bookings ("every Monday for 8 weeks")
+- Move the sweeper to a locked or external scheduler for multi-instance deploys
