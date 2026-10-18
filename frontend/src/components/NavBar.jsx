@@ -21,6 +21,9 @@ export default function NavBar() {
         <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : undefined)}>
           Browse
         </NavLink>
+        <NavLink to="/self-care" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+          Self Care
+        </NavLink>
         <NavLink to="/trainers" className={({ isActive }) => (isActive ? 'active' : undefined)}>
           Trainers
         </NavLink>

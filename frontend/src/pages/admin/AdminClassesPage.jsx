@@ -4,9 +4,12 @@ import { listResources, updateResource } from '../../api/resources';
 import ErrorMessage from '../../components/ErrorMessage';
 import { formatMoney } from '../../lib/formatters';
 
+const CATEGORY_LABELS = { class: 'Class', 'self-care': 'Self Care' };
+
 export default function AdminClassesPage() {
   const [items, setItems] = useState([]);
   const [showInactive, setShowInactive] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
@@ -15,14 +18,18 @@ export default function AdminClassesPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await listResources({ limit: 100, includeInactive: showInactive });
+      const data = await listResources({
+        limit: 100,
+        includeInactive: showInactive,
+        category: categoryFilter || undefined,
+      });
       setItems(data.items);
     } catch (err) {
       setError(err);
     } finally {
       setLoading(false);
     }
-  }, [showInactive]);
+  }, [showInactive, categoryFilter]);
 
   useEffect(() => {
     load();
@@ -44,8 +51,18 @@ export default function AdminClassesPage() {
   return (
     <div className="admin-section">
       <div className="page-header">
-        <h2 className="admin-section-title">Classes</h2>
+        <h2 className="admin-section-title">Resources</h2>
         <div className="admin-toolbar">
+          <select
+            className="admin-filter-select"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filter by category"
+          >
+            <option value="">All categories</option>
+            <option value="class">Class</option>
+            <option value="self-care">Self Care</option>
+          </select>
           <label className="inline-check">
             <input
               type="checkbox"
@@ -55,7 +72,7 @@ export default function AdminClassesPage() {
             Show inactive
           </label>
           <Link to="/admin/classes/new" className="btn btn-primary">
-            + New class
+            + New
           </Link>
         </div>
       </div>
@@ -72,6 +89,7 @@ export default function AdminClassesPage() {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Category</th>
                 <th>Trainer</th>
                 <th>Price</th>
                 <th>Capacity</th>
@@ -83,6 +101,7 @@ export default function AdminClassesPage() {
               {items.map((resource) => (
                 <tr key={resource._id}>
                   <td>{resource.name}</td>
+                  <td>{CATEGORY_LABELS[resource.category] || resource.category}</td>
                   <td>{resource.trainerId?.name || '—'}</td>
                   <td>{formatMoney(resource.price, resource.currency)}</td>
                   <td>{resource.capacity}</td>

@@ -185,7 +185,10 @@ frontend/       # React + Vite customer web app (see below)
 `frontend/` is a React + Vite app covering both sides of the product:
 
 - **Customer flow**: register/log in, browse resources and trainers, pick an
-  available slot, pay with Stripe Elements, and view/cancel bookings.
+  available slot, pay with Stripe Elements, and view/cancel bookings. Browse
+  (`/`) and Self Care (`/self-care`) are the same `Resource` collection split
+  by a `category` field (`class` vs. `self-care`) — a spa session and a
+  CrossFit class are the same document shape, just grouped differently.
 - **Admin flow** (`/admin`, staff/admin only — the nav link only appears for
   those roles, and the route redirects anyone else back to Browse): a
   dashboard (bookings, revenue, refunds, seat utilisation, top classes by

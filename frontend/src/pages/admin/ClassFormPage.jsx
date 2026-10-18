@@ -8,6 +8,7 @@ import ErrorMessage from '../../components/ErrorMessage';
 const EMPTY_FORM = {
   name: '',
   description: '',
+  category: 'class',
   capacity: '10',
   priceDollars: '0.00',
   durationMinutes: '60',
@@ -52,6 +53,7 @@ export default function ClassFormPage() {
         setForm({
           name: resource.name,
           description: resource.description || '',
+          category: resource.category || 'class',
           capacity: String(resource.capacity),
           priceDollars: (resource.price / 100).toFixed(2),
           durationMinutes: String(resource.durationMinutes),
@@ -76,6 +78,7 @@ export default function ClassFormPage() {
     const payload = {
       name: form.name,
       description: form.description || undefined,
+      category: form.category,
       capacity: Math.round(Number(form.capacity)),
       price: Math.round(Number(form.priceDollars) * 100),
       durationMinutes: Math.round(Number(form.durationMinutes)),
@@ -121,6 +124,14 @@ export default function ClassFormPage() {
             value={form.description}
             onChange={(e) => update({ description: e.target.value })}
           />
+        </label>
+
+        <label>
+          Category
+          <select value={form.category} onChange={(e) => update({ category: e.target.value })}>
+            <option value="class">Class (shows on Browse)</option>
+            <option value="self-care">Self Care</option>
+          </select>
         </label>
 
         <div className="admin-form-row">

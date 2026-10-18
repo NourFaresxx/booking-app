@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/AdminLayout';
 import ResourcesPage from './pages/ResourcesPage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
+import SelfCarePage from './pages/SelfCarePage';
 import TrainersPage from './pages/TrainersPage';
 import TrainerDetailPage from './pages/TrainerDetailPage';
 import LoginPage from './pages/LoginPage';
@@ -28,6 +29,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<ResourcesPage />} />
           <Route path="/resources/:id" element={<ResourceDetailPage />} />
+          <Route path="/self-care" element={<SelfCarePage />} />
           <Route path="/trainers" element={<TrainersPage />} />
           <Route path="/trainers/:id" element={<TrainerDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
