@@ -1,4 +1,4 @@
-# Booking API
+# Rehab Sporting Club Gym
 
 A REST API for booking time-limited resources (classes, rooms, equipment) with
 JWT authentication, role-based access control, Stripe payments, and

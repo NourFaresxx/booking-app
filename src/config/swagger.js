@@ -5,7 +5,7 @@ const options = {
   definition: {
     openapi: '3.0.3',
     info: {
-      title: 'Booking API',
+      title: 'Rehab Sporting Club Gym API',
       version: '1.1.0',
       description: [
         'REST API for booking time-limited resources, with JWT auth, role-based',

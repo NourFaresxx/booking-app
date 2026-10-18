@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="site-footer-inner">
         <div className="site-footer-brand">
           <BrandMark />
-          <span>Booking</span>
+          <span>Rehab Sporting Club Gym</span>
         </div>
         <nav className="site-footer-links">
           <Link to="/">Browse</Link>
@@ -15,7 +15,8 @@ export default function Footer() {
           <Link to="/bookings">My bookings</Link>
         </nav>
         <p className="site-footer-note">
-          Payments processed securely by Stripe. &copy; {new Date().getFullYear()} Booking.
+          Payments processed securely by Stripe. &copy; {new Date().getFullYear()} Rehab Sporting
+          Club Gym.
         </p>
       </div>
     </footer>
