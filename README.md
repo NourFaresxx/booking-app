@@ -258,6 +258,55 @@ stripe listen --forward-to localhost:5000/api/webhooks/stripe
 
 Put the printed `whsec_...` value in `STRIPE_WEBHOOK_SECRET`.
 
+## Deployment
+
+`render.yaml` is a [Render Blueprint](https://render.com/docs/blueprint-spec)
+that deploys the API and the frontend together, both on Render's free tier —
+no credit card required, $0 unless you blow far past the generous
+free bandwidth/build-minute limits. The only cost of "free" is a ~1 minute
+cold start if the service has had no traffic in the last 15 minutes.
+
+1. On [render.com](https://render.com), **New → Blueprint**, select this
+   repo. Render finds `render.yaml` automatically and shows two services:
+   `rehab-sporting-club-api` and `rehab-sporting-club-web`.
+2. Fill in the prompted secrets (these are typed into Render's dashboard,
+   never committed to the repo):
+   - `MONGODB_URI` — same Atlas connection string as local
+   - `STRIPE_SECRET_KEY` — your `sk_test_...` key
+   - `STRIPE_WEBHOOK_SECRET` — a placeholder for now (e.g. `whsec_pending`);
+     production needs its own webhook endpoint, set up in step 5
+   - `CLIENT_URL` on the API, and `VITE_API_URL` on the frontend — also
+     placeholders for now (e.g. `https://pending.example.com`); neither
+     service's real `onrender.com` URL exists until it has deployed once,
+     so this is a chicken-and-egg problem solved by step 4
+   - `VITE_STRIPE_PUBLISHABLE_KEY` — your real `pk_test_...` key (safe to
+     set correctly now; it's meant to be public)
+   - `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` are generated for you
+3. Deploy. Both services build; note their real URLs once live
+   (`https://rehab-sporting-club-api.onrender.com`,
+   `https://rehab-sporting-club-web.onrender.com` — Render appends a random
+   suffix instead if either name is already taken).
+4. Go back and fix the two placeholders with the real URLs:
+   - API's `CLIENT_URL` → the frontend's URL
+   - Frontend's `VITE_API_URL` → the API's URL + `/api`
+
+   Then redeploy both manually. This matters most for the frontend: Vite
+   bakes `VITE_*` values in at *build* time, so a stale `VITE_API_URL`
+   silently keeps pointing at the placeholder until the next build, not just
+   the next restart.
+5. **MongoDB Atlas network access**: Render's free tier has no fixed
+   outbound IP, so add `0.0.0.0/0` under Atlas → Network Access (same fix as
+   the "IP not whitelisted" error in local dev, just permanent this time
+   since the IP genuinely varies).
+6. **Production Stripe webhook**: `stripe listen` is dev-only. In the
+   [Stripe Dashboard](https://dashboard.stripe.com/test/webhooks), add an
+   endpoint for `https://<your-api>.onrender.com/api/webhooks/stripe`
+   listening for `payment_intent.succeeded`, `payment_intent.payment_failed`,
+   `payment_intent.canceled`, and `charge.refunded` — the same four events
+   `src/controllers/webhookController.js` handles. Copy the endpoint's
+   signing secret into `STRIPE_WEBHOOK_SECRET` on Render, replacing the
+   placeholder, and redeploy the API.
+
 ## Notes and limitations
 
 - **Transactions need a replica set.** MongoDB Atlas provides one; a bare
@@ -276,7 +325,6 @@ Put the printed `whsec_...` value in `STRIPE_WEBHOOK_SECRET`.
 
 ## Possible extensions
 
-- Deploy to Render/Railway + MongoDB Atlas, and the frontend to Vercel/Netlify
 - A staff/admin UI (resource management, analytics) alongside the customer one
 - Per-session refresh tokens so multiple devices can stay logged in
 - Waitlists: offer a freed seat to the next person in line

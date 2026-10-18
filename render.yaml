@@ -1,0 +1,64 @@
+# Render Blueprint — deploys the API and the frontend together from this repo.
+# https://render.com/docs/blueprint-spec
+#
+# Usage: on render.com, New -> Blueprint -> select this repo. Render finds
+# this file automatically. You'll be prompted for the `sync: false` values
+# below (never store secrets in this file). See README.md "Deployment" for
+# the full walkthrough, including the two values that can only be filled in
+# correctly *after* the first deploy (CLIENT_URL and VITE_API_URL each need
+# the other service's real onrender.com URL, which doesn't exist until that
+# service has deployed once).
+
+services:
+  - type: web
+    name: rehab-sporting-club-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render terminates TLS and proxies to the service, so the app must
+      # trust that one hop to read the real client IP — otherwise every
+      # request looks like it comes from Render and rate limiting breaks.
+      - key: TRUST_PROXY
+        value: "1"
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Placeholder at first deploy — set to the frontend's real
+      # onrender.com URL once it exists, then redeploy. See README.
+      - key: CLIENT_URL
+        sync: false
+
+  - type: web
+    name: rehab-sporting-club-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # Placeholder at first deploy — set to the API's real onrender.com
+      # URL (plus /api) once it exists, then redeploy. Vite bakes this in
+      # at build time, so changing it always requires a rebuild, not just a
+      # restart. See README.
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
+    routes:
+      # SPA fallback: any path that isn't a real static file (e.g.
+      # /resources/abc123 on a hard refresh) should still serve index.html
+      # so React Router can handle it client-side, instead of a 404.
+      - type: rewrite
+        source: /*
+        destination: /index.html
