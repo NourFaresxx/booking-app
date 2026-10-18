@@ -129,7 +129,7 @@ export default function ClassFormPage() {
         <label>
           Category
           <select value={form.category} onChange={(e) => update({ category: e.target.value })}>
-            <option value="classes">Classes (shows on Browse)</option>
+            <option value="classes">Classes (shows on the Classes page)</option>
             <option value="self-care">Self Care</option>
           </select>
         </label>

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 /**
  * Gates a route on an active session, remembering where to return after
  * login. Pass `roles` to also require the user's role be one of them — a
- * logged-in customer hitting an admin-only route is sent back to Browse
+ * logged-in customer hitting an admin-only route is sent back to Classes
  * rather than treated like an unauthenticated one (login would be useless
  * to them; they're already logged in, they just can't be here).
  */

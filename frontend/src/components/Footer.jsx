@@ -10,7 +10,7 @@ export default function Footer() {
           <span>Rehab Sporting Club Gym</span>
         </div>
         <nav className="site-footer-links">
-          <Link to="/">Browse</Link>
+          <Link to="/">Classes</Link>
           <Link to="/trainers">Trainers</Link>
           <Link to="/bookings">My bookings</Link>
         </nav>
