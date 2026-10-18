@@ -6,7 +6,13 @@ const { asyncHandler, ApiError } = require('../middleware/errorHandler');
 const listTrainers = asyncHandler(async (req, res) => {
   const { search, page = 1, limit = 20 } = req.query;
 
-  const filter = { isActive: true };
+  // See resourceController.listResources — same rule: includeInactive only
+  // applies for an authenticated staff/admin caller.
+  const canSeeInactive =
+    req.query.includeInactive === 'true' &&
+    Boolean(req.user) &&
+    ['staff', 'admin'].includes(req.user.role);
+  const filter = canSeeInactive ? {} : { isActive: true };
   if (search) filter.$text = { $search: search };
 
   const pageNum = Math.max(1, Number(page) || 1);

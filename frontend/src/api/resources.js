@@ -10,7 +10,10 @@ function toQueryString(params = {}) {
 }
 
 export async function listResources(params = {}) {
-  return apiFetch(`/resources${toQueryString(params)}`, { auth: false });
+  // `includeInactive` is silently ignored by the API unless the caller is
+  // authenticated as staff/admin, so it's safe to always attach a token when
+  // one exists rather than branch on who's asking.
+  return apiFetch(`/resources${toQueryString(params)}`, { auth: Boolean(params.includeInactive) });
 }
 
 export async function getResource(id) {
@@ -19,4 +22,17 @@ export async function getResource(id) {
 
 export async function getAvailability(id, { from, to } = {}) {
   return apiFetch(`/resources/${id}/availability${toQueryString({ from, to })}`, { auth: false });
+}
+
+export async function createResource(data) {
+  return apiFetch('/resources', { method: 'POST', body: data });
+}
+
+export async function updateResource(id, data) {
+  return apiFetch(`/resources/${id}`, { method: 'PATCH', body: data });
+}
+
+/** Soft delete (deactivate) — see updateResource({isActive: true}) to reactivate. */
+export async function deleteResource(id) {
+  return apiFetch(`/resources/${id}`, { method: 'DELETE' });
 }

@@ -29,6 +29,14 @@ export default function NavBar() {
             My bookings
           </NavLink>
         )}
+        {isAuthenticated && ['staff', 'admin'].includes(user.role) && (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) => (isActive ? 'active' : undefined)}
+          >
+            Admin
+          </NavLink>
+        )}
       </nav>
       <div className="nav-auth">
         {isAuthenticated ? (

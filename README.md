@@ -16,7 +16,7 @@ concurrency-safe booking that cannot overbook a slot.
 - **Notifications**: confirmation / cancellation / expiry emails over SMTP, logged instead when SMTP isn't configured
 - **Validation**: Zod schemas on every write endpoint
 - **Docs**: OpenAPI 3 at `/api/docs`, raw spec at `/api/openapi.json`
-- **Tests**: 128 Jest + Supertest tests, including concurrency, webhook idempotency and capacity-release coverage
+- **Tests**: 151 Jest + Supertest tests, including concurrency, webhook idempotency and capacity-release coverage
 
 ## Stack
 
@@ -182,11 +182,22 @@ frontend/       # React + Vite customer web app (see below)
 
 ## Frontend
 
-`frontend/` is a React + Vite app covering the customer-facing flow: register/
-log in, browse resources and trainers, pick an available slot, pay with
-Stripe Elements, and view/cancel bookings. Staff/admin actions (managing
-resources, analytics) aren't in the UI — use `/api/docs` or the scripts
-above for those.
+`frontend/` is a React + Vite app covering both sides of the product:
+
+- **Customer flow**: register/log in, browse resources and trainers, pick an
+  available slot, pay with Stripe Elements, and view/cancel bookings.
+- **Admin flow** (`/admin`, staff/admin only — the nav link only appears for
+  those roles, and the route redirects anyone else back to Browse): a
+  dashboard (bookings, revenue, refunds, seat utilisation, top classes by
+  revenue), and CRUD for classes and trainers, including reactivating
+  something you'd previously deactivated.
+
+The admin UI's "show inactive" toggle depends on a backend addition that
+isn't obvious from the API routes alone: `GET /resources` and `GET
+/trainers` accept an `includeInactive=true` query param, but it's silently
+ignored unless the caller is authenticated as staff/admin — a public/
+customer request to that same URL with that same query string always gets
+active-only results, regardless of what it asks for.
 
 ```bash
 cd frontend
@@ -325,7 +336,6 @@ cold start if the service has had no traffic in the last 15 minutes.
 
 ## Possible extensions
 
-- A staff/admin UI (resource management, analytics) alongside the customer one
 - Per-session refresh tokens so multiple devices can stay logged in
 - Waitlists: offer a freed seat to the next person in line
 - Recurring bookings ("every Monday for 8 weeks")

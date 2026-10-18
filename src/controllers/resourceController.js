@@ -17,7 +17,11 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const listResources = asyncHandler(async (req, res) => {
   const { search, minPrice, maxPrice, sort, page = 1, limit = 20 } = req.query;
 
-  const filter = { isActive: true };
+  // `includeInactive` only works for staff/admin — a customer's browse page
+  // should never surface a deactivated class no matter what query string
+  // they send.
+  const canSeeInactive = req.query.includeInactive === 'true' && isStaffOrAdmin(req.user);
+  const filter = canSeeInactive ? {} : { isActive: true };
   if (search) filter.$text = { $search: search };
 
   const min = parseMoney(minPrice, 'minPrice');
@@ -147,6 +151,10 @@ async function findResourceOr404(id) {
   const resource = await Resource.findById(id);
   if (!resource) throw new ApiError(404, 'Resource not found');
   return resource;
+}
+
+function isStaffOrAdmin(user) {
+  return Boolean(user) && ['staff', 'admin'].includes(user.role);
 }
 
 /** Staff manage only what they own; admins manage everything. */

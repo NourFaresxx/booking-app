@@ -6,7 +6,7 @@ const {
   updateTrainer,
   deleteTrainer,
 } = require('../controllers/trainerController');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, optionalAuth } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { createTrainerSchema, updateTrainerSchema } = require('../schemas/trainerSchemas');
 
@@ -30,6 +30,12 @@ const router = express.Router();
  *       - in: query
  *         name: limit
  *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+ *       - in: query
+ *         name: includeInactive
+ *         schema: { type: boolean, default: false }
+ *         description: >
+ *           Include deactivated trainers too. Ignored unless the caller is
+ *           authenticated as staff or admin.
  *     responses:
  *       200:
  *         description: A page of trainers
@@ -43,7 +49,7 @@ const router = express.Router();
  *                   items: { $ref: '#/components/schemas/Trainer' }
  *                 pagination: { $ref: '#/components/schemas/Pagination' }
  */
-router.get('/', listTrainers);
+router.get('/', optionalAuth, listTrainers);
 
 /**
  * @openapi

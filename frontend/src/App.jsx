@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminLayout from './components/AdminLayout';
 import ResourcesPage from './pages/ResourcesPage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
 import TrainersPage from './pages/TrainersPage';
@@ -11,6 +12,13 @@ import RegisterPage from './pages/RegisterPage';
 import CheckoutPage from './pages/CheckoutPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import NotFoundPage from './pages/NotFoundPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminClassesPage from './pages/admin/AdminClassesPage';
+import ClassFormPage from './pages/admin/ClassFormPage';
+import AdminTrainersPage from './pages/admin/AdminTrainersPage';
+import TrainerFormPage from './pages/admin/TrainerFormPage';
+
+const ADMIN_ROLES = ['staff', 'admin'];
 
 export default function App() {
   return (
@@ -40,6 +48,22 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={ADMIN_ROLES}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="classes" element={<AdminClassesPage />} />
+            <Route path="classes/new" element={<ClassFormPage />} />
+            <Route path="classes/:id/edit" element={<ClassFormPage />} />
+            <Route path="trainers" element={<AdminTrainersPage />} />
+            <Route path="trainers/new" element={<TrainerFormPage />} />
+            <Route path="trainers/:id/edit" element={<TrainerFormPage />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
