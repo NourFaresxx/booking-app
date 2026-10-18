@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BrandMark from './BrandMark';
 
 export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -13,6 +14,7 @@ export default function NavBar() {
   return (
     <header className="nav">
       <Link to="/" className="nav-brand">
+        <BrandMark className="nav-brand-mark" />
         Booking
       </Link>
       <nav className="nav-links">
