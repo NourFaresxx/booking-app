@@ -7,7 +7,7 @@ const {
   deleteResource,
   getAvailability,
 } = require('../controllers/resourceController');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, optionalAuth } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { createResourceSchema, updateResourceSchema } = require('../schemas/resourceSchemas');
 
@@ -45,6 +45,13 @@ const router = express.Router();
  *       - in: query
  *         name: limit
  *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+ *       - in: query
+ *         name: includeInactive
+ *         schema: { type: boolean, default: false }
+ *         description: >
+ *           Include deactivated resources too. Ignored unless the caller is
+ *           authenticated as staff or admin — a public/customer request
+ *           always sees active resources only, regardless of this flag.
  *     responses:
  *       200:
  *         description: A page of resources
@@ -59,7 +66,7 @@ const router = express.Router();
  *                 pagination: { $ref: '#/components/schemas/Pagination' }
  *       400: { description: Invalid sort or price filter }
  */
-router.get('/', listResources);
+router.get('/', optionalAuth, listResources);
 
 /**
  * @openapi

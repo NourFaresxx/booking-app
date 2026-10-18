@@ -13,6 +13,35 @@ describe('GET /api/resources', () => {
     expect(res.body.pagination).toMatchObject({ page: 1, total: 1, pages: 1 });
   });
 
+  it('ignores includeInactive for an anonymous caller', async () => {
+    const { user } = await makeUser({ role: 'staff' });
+    await makeResource({ ownerId: user._id, name: 'Hidden', isActive: false });
+
+    const res = await request(app).get('/api/resources?includeInactive=true');
+    expect(res.body.items).toHaveLength(0);
+  });
+
+  it('ignores includeInactive for a logged-in customer', async () => {
+    const { user } = await makeUser({ role: 'staff' });
+    const customer = await makeUser();
+    await makeResource({ ownerId: user._id, name: 'Hidden', isActive: false });
+
+    const res = await as(customer.token).get('/api/resources?includeInactive=true');
+    expect(res.body.items).toHaveLength(0);
+  });
+
+  it('shows deactivated resources to staff when includeInactive=true', async () => {
+    const staff = await makeUser({ role: 'staff' });
+    await makeResource({ ownerId: staff.user._id, name: 'Visible' });
+    await makeResource({ ownerId: staff.user._id, name: 'Hidden', isActive: false });
+
+    const withoutFlag = await as(staff.token).get('/api/resources');
+    expect(withoutFlag.body.items.map((r) => r.name)).toEqual(['Visible']);
+
+    const withFlag = await as(staff.token).get('/api/resources?includeInactive=true');
+    expect(withFlag.body.items.map((r) => r.name).sort()).toEqual(['Hidden', 'Visible']);
+  });
+
   it('filters by price range in cents', async () => {
     const { user } = await makeUser({ role: 'staff' });
     await makeResource({ ownerId: user._id, name: 'Cheap', price: 500 });

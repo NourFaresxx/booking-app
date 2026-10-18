@@ -12,6 +12,32 @@ describe('GET /api/trainers', () => {
     expect(res.body.items.map((t) => t.name)).toEqual(['Visible Trainer']);
   });
 
+  it('ignores includeInactive for an anonymous caller', async () => {
+    await makeTrainer({ name: 'Hidden', isActive: false });
+    const res = await request(app).get('/api/trainers?includeInactive=true');
+    expect(res.body.items).toHaveLength(0);
+  });
+
+  it('ignores includeInactive for a logged-in customer', async () => {
+    const customer = await makeUser();
+    await makeTrainer({ name: 'Hidden', isActive: false });
+
+    const res = await as(customer.token).get('/api/trainers?includeInactive=true');
+    expect(res.body.items).toHaveLength(0);
+  });
+
+  it('shows deactivated trainers to admin when includeInactive=true', async () => {
+    const admin = await makeUser({ role: 'admin' });
+    await makeTrainer({ name: 'Visible' });
+    await makeTrainer({ name: 'Hidden', isActive: false });
+
+    const withoutFlag = await as(admin.token).get('/api/trainers');
+    expect(withoutFlag.body.items.map((t) => t.name)).toEqual(['Visible']);
+
+    const withFlag = await as(admin.token).get('/api/trainers?includeInactive=true');
+    expect(withFlag.body.items.map((t) => t.name).sort()).toEqual(['Hidden', 'Visible']);
+  });
+
   it('searches across name, bio, and specialties', async () => {
     await makeTrainer({ name: 'Sarah Chen', specialties: ['Pilates'] });
     await makeTrainer({ name: 'Marcus Webb', specialties: ['CrossFit'] });
