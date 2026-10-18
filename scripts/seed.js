@@ -84,11 +84,17 @@ const TRAINERS = [
   },
 ];
 
-// `trainer` references a TRAINERS[].key, resolved to an ObjectId at seed time.
+// `trainer` references a TRAINERS[].key, resolved to an ObjectId at seed
+// time. `category` defaults to 'class' on the schema, but is written
+// explicitly here anyway — the upsert below uses raw $set, which bypasses
+// Mongoose's schema defaults (those only apply when a document is
+// hydrated/created through the app, not to a server-side query filter
+// against the raw stored document).
 const RESOURCES = [
   {
     name: 'Morning Yoga',
     description: 'A gentle 60-minute flow to start the day.',
+    category: 'class',
     capacity: 12,
     price: 2500,
     durationMinutes: 60,
@@ -99,6 +105,7 @@ const RESOURCES = [
   {
     name: 'Pilates Fundamentals',
     description: 'Mat Pilates focused on core strength and control. All levels welcome.',
+    category: 'class',
     capacity: 10,
     price: 2800,
     durationMinutes: 50,
@@ -109,6 +116,7 @@ const RESOURCES = [
   {
     name: 'CrossFit WOD',
     description: 'Coached workout of the day — scaled for every fitness level.',
+    category: 'class',
     capacity: 14,
     price: 3200,
     durationMinutes: 60,
@@ -121,6 +129,7 @@ const RESOURCES = [
     description:
       'High-energy choreography set to hip hop beats - no experience needed, just ' +
       'bring energy.',
+    category: 'class',
     capacity: 20,
     price: 2200,
     durationMinutes: 55,
@@ -133,6 +142,7 @@ const RESOURCES = [
     description:
       'A flowing, floor-based class blending technique with free movement - open to ' +
       'all levels.',
+    category: 'class',
     capacity: 16,
     price: 2400,
     durationMinutes: 60,
@@ -145,12 +155,63 @@ const RESOURCES = [
     description:
       'High-energy pad and bag work with coached technique - a full-body cardio and ' +
       'strength session for all levels.',
+    category: 'class',
     capacity: 8,
     price: 3000,
     durationMinutes: 75,
     timezone: 'Europe/Berlin',
     trainer: 'dave',
     openingHours: WEEKDAYS.map((dayOfWeek) => ({ dayOfWeek, start: '06:00', end: '09:00' })),
+  },
+  {
+    name: 'Spa',
+    description:
+      'Full access to the pool, steam room, and relaxation lounge for the day.',
+    category: 'self-care',
+    capacity: 15,
+    price: 3500,
+    durationMinutes: 90,
+    timezone: 'Europe/Berlin',
+    trainer: null,
+    openingHours: [
+      { dayOfWeek: 0, start: '10:00', end: '20:00' },
+      { dayOfWeek: 1, start: '10:00', end: '20:00' },
+      { dayOfWeek: 2, start: '10:00', end: '20:00' },
+      { dayOfWeek: 3, start: '10:00', end: '20:00' },
+      { dayOfWeek: 4, start: '10:00', end: '20:00' },
+      { dayOfWeek: 5, start: '10:00', end: '20:00' },
+      { dayOfWeek: 6, start: '10:00', end: '20:00' },
+    ],
+  },
+  {
+    name: 'Sauna',
+    description: 'Traditional Finnish sauna session, towels provided.',
+    category: 'self-care',
+    capacity: 8,
+    price: 2000,
+    durationMinutes: 45,
+    timezone: 'Europe/Berlin',
+    trainer: null,
+    openingHours: [
+      { dayOfWeek: 0, start: '10:00', end: '20:00' },
+      { dayOfWeek: 1, start: '10:00', end: '20:00' },
+      { dayOfWeek: 2, start: '10:00', end: '20:00' },
+      { dayOfWeek: 3, start: '10:00', end: '20:00' },
+      { dayOfWeek: 4, start: '10:00', end: '20:00' },
+      { dayOfWeek: 5, start: '10:00', end: '20:00' },
+      { dayOfWeek: 6, start: '10:00', end: '20:00' },
+    ],
+  },
+  {
+    name: 'Massage',
+    description: 'One-on-one therapeutic massage with a certified therapist.',
+    category: 'self-care',
+    capacity: 1,
+    price: 6000,
+    durationMinutes: 60,
+    timezone: 'Europe/Berlin',
+    trainer: null,
+    openingHours: WEEKDAYS.map((dayOfWeek) => ({ dayOfWeek, start: '09:00', end: '18:00' })),
   },
 ];
 
@@ -215,14 +276,14 @@ async function main() {
             isActive: true,
           },
         },
-        { new: true, upsert: true }
+        { new: true, upsert: true, setDefaultsOnInsert: true }
       );
       const schedule =
         resource.openingHours.length === 0
           ? 'any time'
           : `${resource.openingHours.length} weekly window(s)`;
       console.log(
-        `  class    ${resource.name.padEnd(24)} cap ${String(resource.capacity).padStart(2)}  ` +
+        `  ${resource.category.padEnd(10)}${resource.name.padEnd(24)} cap ${String(resource.capacity).padStart(2)}  ` +
           `${(resource.price / 100).toFixed(2)} ${resource.currency.toUpperCase()}  ${schedule}`
       );
     }

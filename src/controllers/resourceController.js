@@ -15,7 +15,7 @@ const DEFAULT_SORT = '-createdAt';
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const listResources = asyncHandler(async (req, res) => {
-  const { search, minPrice, maxPrice, sort, page = 1, limit = 20 } = req.query;
+  const { search, category, minPrice, maxPrice, sort, page = 1, limit = 20 } = req.query;
 
   // `includeInactive` only works for staff/admin — a customer's browse page
   // should never surface a deactivated class no matter what query string
@@ -23,6 +23,12 @@ const listResources = asyncHandler(async (req, res) => {
   const canSeeInactive = req.query.includeInactive === 'true' && isStaffOrAdmin(req.user);
   const filter = canSeeInactive ? {} : { isActive: true };
   if (search) filter.$text = { $search: search };
+  if (category) {
+    if (!Resource.CATEGORIES.includes(category)) {
+      throw new ApiError(400, `category must be one of: ${Resource.CATEGORIES.join(', ')}`);
+    }
+    filter.category = category;
+  }
 
   const min = parseMoney(minPrice, 'minPrice');
   const max = parseMoney(maxPrice, 'maxPrice');

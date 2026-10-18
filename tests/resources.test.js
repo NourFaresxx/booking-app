@@ -13,6 +13,28 @@ describe('GET /api/resources', () => {
     expect(res.body.pagination).toMatchObject({ page: 1, total: 1, pages: 1 });
   });
 
+  it('defaults new resources to the "class" category', async () => {
+    const resource = await makeResource();
+    expect(resource.category).toBe('class');
+  });
+
+  it('filters by category', async () => {
+    const { user } = await makeUser({ role: 'staff' });
+    await makeResource({ ownerId: user._id, name: 'Yoga', category: 'class' });
+    await makeResource({ ownerId: user._id, name: 'Sauna', category: 'self-care' });
+
+    const classes = await request(app).get('/api/resources?category=class');
+    expect(classes.body.items.map((r) => r.name)).toEqual(['Yoga']);
+
+    const selfCare = await request(app).get('/api/resources?category=self-care');
+    expect(selfCare.body.items.map((r) => r.name)).toEqual(['Sauna']);
+  });
+
+  it('rejects an invalid category', async () => {
+    const res = await request(app).get('/api/resources?category=bogus');
+    expect(res.status).toBe(400);
+  });
+
   it('ignores includeInactive for an anonymous caller', async () => {
     const { user } = await makeUser({ role: 'staff' });
     await makeResource({ ownerId: user._id, name: 'Hidden', isActive: false });
@@ -99,6 +121,28 @@ describe('GET /api/resources/:id', () => {
 });
 
 describe('POST /api/resources', () => {
+  it('accepts an explicit category and defaults to "class" when omitted', async () => {
+    const staff = await makeUser({ role: 'staff' });
+
+    const withCategory = await as(staff.token)
+      .post('/api/resources')
+      .send({ name: 'Sauna', category: 'self-care', capacity: 8, price: 2000, durationMinutes: 45 });
+    expect(withCategory.body.category).toBe('self-care');
+
+    const withoutCategory = await as(staff.token)
+      .post('/api/resources')
+      .send({ name: 'Spin', capacity: 10, price: 2000, durationMinutes: 45 });
+    expect(withoutCategory.body.category).toBe('class');
+  });
+
+  it('rejects an unknown category', async () => {
+    const staff = await makeUser({ role: 'staff' });
+    const res = await as(staff.token)
+      .post('/api/resources')
+      .send({ name: 'X', category: 'bogus', capacity: 1, price: 0, durationMinutes: 30 });
+    expect(res.status).toBe(400);
+  });
+
   it('requires authentication', async () => {
     const res = await request(app).post('/api/resources').send({ name: 'x' });
     expect(res.status).toBe(401);

@@ -1069,6 +1069,16 @@ a {
   cursor: pointer;
 }
 
+.admin-filter-select {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+}
+
 .inline-check input {
   accent-color: var(--primary);
 }

@@ -19,6 +19,7 @@ const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'must be a valid id');
 const createResourceSchema = z.object({
   name: z.string().min(2).max(120),
   description: z.string().max(2000).optional(),
+  category: z.enum(['class', 'self-care']).optional(),
   capacity: z.number().int().min(1),
   price: z.number().int().min(0), // cents
   currency: z.string().length(3).toLowerCase().optional(),

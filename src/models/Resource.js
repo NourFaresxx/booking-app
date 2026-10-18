@@ -11,10 +11,16 @@ const openingHourSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// What kind of offering this is, for grouping on separate browse pages
+// (Browse = 'class', Self Care = 'self-care'). Not a hard taxonomy — just
+// enough to keep a spa session from showing up next to a CrossFit class.
+const RESOURCE_CATEGORIES = ['class', 'self-care'];
+
 const resourceSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
+    category: { type: String, enum: RESOURCE_CATEGORIES, default: 'class' },
     capacity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true, min: 0 }, // in cents
     currency: { type: String, default: 'usd', lowercase: true, trim: true },
@@ -40,10 +46,15 @@ const resourceSchema = new mongoose.Schema(
 );
 
 resourceSchema.index({ name: 'text', description: 'text' });
-// Supports the common "active resources, newest first" listing.
+// Supports the common "active resources, newest first" listing, and the
+// same filtered by category (Browse vs. Self Care).
 resourceSchema.index({ isActive: 1, createdAt: -1 });
+resourceSchema.index({ category: 1, isActive: 1, createdAt: -1 });
 // Supports "classes taught by this trainer" lookups (sparse: most resources,
 // like rooms and equipment, have no trainer at all).
 resourceSchema.index({ trainerId: 1, isActive: 1 }, { sparse: true });
 
-module.exports = mongoose.model('Resource', resourceSchema);
+const Resource = mongoose.model('Resource', resourceSchema);
+Resource.CATEGORIES = RESOURCE_CATEGORIES;
+
+module.exports = Resource;

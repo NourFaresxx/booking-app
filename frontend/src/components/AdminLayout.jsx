@@ -13,7 +13,7 @@ export default function AdminLayout() {
           Dashboard
         </NavLink>
         <NavLink to="/admin/classes" className={tabClass}>
-          Classes
+          Resources
         </NavLink>
         <NavLink to="/admin/trainers" className={tabClass}>
           Trainers

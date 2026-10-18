@@ -26,6 +26,10 @@ const router = express.Router();
  *         schema: { type: string }
  *         description: Full-text search over name and description
  *       - in: query
+ *         name: category
+ *         schema: { type: string, enum: [class, self-care] }
+ *         description: Filter to one offering category (Browse vs. Self Care)
+ *       - in: query
  *         name: minPrice
  *         schema: { type: integer }
  *         description: Minimum price in cents

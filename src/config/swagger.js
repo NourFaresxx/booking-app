@@ -86,6 +86,12 @@ const options = {
           properties: {
             name: { type: 'string', example: 'Morning Yoga' },
             description: { type: 'string' },
+            category: {
+              type: 'string',
+              enum: ['class', 'self-care'],
+              default: 'class',
+              description: 'Which browse page this shows up on',
+            },
             capacity: { type: 'integer', minimum: 1, example: 12 },
             price: { type: 'integer', minimum: 0, description: 'Cents', example: 2500 },
             currency: { type: 'string', example: 'usd' },
