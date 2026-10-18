@@ -9,6 +9,7 @@ const swaggerSpec = require('./config/swagger');
 
 const authRoutes = require('./routes/authRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
+const trainerRoutes = require('./routes/trainerRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
@@ -72,6 +73,7 @@ app.get('/api/openapi.json', (req, res) => res.json(swaggerSpec));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/trainers', trainerRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/analytics', analyticsRoutes);
 

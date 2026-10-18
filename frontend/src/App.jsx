@@ -3,6 +3,8 @@ import NavBar from './components/NavBar';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResourcesPage from './pages/ResourcesPage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
+import TrainersPage from './pages/TrainersPage';
+import TrainerDetailPage from './pages/TrainerDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CheckoutPage from './pages/CheckoutPage';
@@ -17,6 +19,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<ResourcesPage />} />
           <Route path="/resources/:id" element={<ResourceDetailPage />} />
+          <Route path="/trainers" element={<TrainersPage />} />
+          <Route path="/trainers/:id" element={<TrainerDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route

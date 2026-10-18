@@ -19,6 +19,9 @@ export default function NavBar() {
         <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : undefined)}>
           Browse
         </NavLink>
+        <NavLink to="/trainers" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+          Trainers
+        </NavLink>
         {isAuthenticated && (
           <NavLink to="/bookings" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             My bookings

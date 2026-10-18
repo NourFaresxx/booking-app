@@ -18,6 +18,7 @@ const options = {
     tags: [
       { name: 'Auth', description: 'Registration, login and token rotation' },
       { name: 'Resources', description: 'Bookable resources and their availability' },
+      { name: 'Trainers', description: 'Trainer profiles and the classes they teach' },
       { name: 'Bookings', description: 'Creating, listing and cancelling bookings' },
       { name: 'Analytics', description: 'Booking and revenue reporting' },
       { name: 'Webhooks', description: 'Stripe event receiver' },
@@ -96,7 +97,42 @@ const options = {
             },
             timezone: { type: 'string', example: 'Europe/Berlin' },
             isActive: { type: 'boolean' },
+            trainerId: {
+              type: 'string',
+              nullable: true,
+              description: 'Who teaches this class, if anyone',
+            },
           },
+        },
+        TrainerInput: {
+          type: 'object',
+          required: ['name', 'bio'],
+          properties: {
+            name: { type: 'string', example: 'Sarah Chen' },
+            title: { type: 'string', example: 'Certified Pilates Instructor' },
+            bio: { type: 'string', example: '10+ years teaching mat and reformer Pilates...' },
+            specialties: {
+              type: 'array',
+              items: { type: 'string' },
+              example: ['Pilates', 'Core Strength', 'Rehab'],
+            },
+            photoUrl: { type: 'string', format: 'uri' },
+            yearsExperience: { type: 'integer', minimum: 0, example: 10 },
+            isActive: { type: 'boolean' },
+          },
+        },
+        Trainer: {
+          allOf: [
+            { $ref: '#/components/schemas/TrainerInput' },
+            {
+              type: 'object',
+              properties: {
+                _id: { type: 'string' },
+                createdAt: { type: 'string', format: 'date-time' },
+                updatedAt: { type: 'string', format: 'date-time' },
+              },
+            },
+          ],
         },
         Resource: {
           allOf: [

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Resource = require('../models/Resource');
+const Trainer = require('../models/Trainer');
 const { asyncHandler, ApiError } = require('../middleware/errorHandler');
 const { generateSlots, MAX_RANGE_DAYS } = require('../services/availabilityService');
 const { getBookedCounts } = require('../services/slotService');
@@ -34,7 +35,8 @@ const listResources = asyncHandler(async (req, res) => {
     Resource.find(filter)
       .sort(parseSort(sort))
       .skip((pageNum - 1) * limitNum)
-      .limit(limitNum),
+      .limit(limitNum)
+      .populate('trainerId', 'name title photoUrl'),
     Resource.countDocuments(filter),
   ]);
 
@@ -45,13 +47,17 @@ const listResources = asyncHandler(async (req, res) => {
 });
 
 const getResource = asyncHandler(async (req, res) => {
-  res.json(await findResourceOr404(req.params.id));
+  const resource = await findResourceOr404(req.params.id);
+  await resource.populate('trainerId', 'name title photoUrl');
+  res.json(resource);
 });
 
 const createResource = asyncHandler(async (req, res) => {
   if (req.body.timezone && !isValidTimeZone(req.body.timezone)) {
     throw new ApiError(400, `Unknown timezone: ${req.body.timezone}`);
   }
+  if (req.body.trainerId) await assertTrainerExists(req.body.trainerId);
+
   const resource = await Resource.create({ ...req.body, ownerId: req.user.id });
   res.status(201).json(resource);
 });
@@ -63,6 +69,7 @@ const updateResource = asyncHandler(async (req, res) => {
   if (req.body.timezone && !isValidTimeZone(req.body.timezone)) {
     throw new ApiError(400, `Unknown timezone: ${req.body.timezone}`);
   }
+  if (req.body.trainerId) await assertTrainerExists(req.body.trainerId);
 
   Object.assign(resource, req.body);
   await resource.save();
@@ -148,6 +155,12 @@ function assertCanManage(resource, user) {
   if (resource.ownerId.toString() !== user.id) {
     throw new ApiError(403, 'You can only modify resources you own');
   }
+}
+
+/** Rejects a trainerId that doesn't correspond to a real Trainer document. */
+async function assertTrainerExists(trainerId) {
+  const exists = await Trainer.exists({ _id: trainerId });
+  if (!exists) throw new ApiError(400, 'trainerId does not refer to an existing trainer');
 }
 
 function parseSort(sort) {

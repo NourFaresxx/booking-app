@@ -150,6 +150,18 @@ an hour. `src/utils/timezone.js` does this with `Intl` alone, no date library.
 Booking validates the requested `slotStart` against the same generator, so an
 arbitrary timestamp can't be booked on a resource that isn't open then.
 
+### Trainers
+
+A `Trainer` is a staff-managed profile (bio, specialties, photo) a client
+reads to decide who to book with — deliberately not tied to a `User` account,
+since not every listed trainer needs a login. A `Resource` optionally links to
+one via `trainerId` ("Pilates Fundamentals" taught by Sarah Chen); booking
+itself is unchanged — "signing up for a trainer" means booking one of their
+classes through the same availability/payment flow every other resource uses,
+not a separate booking subsystem. `GET /api/trainers/:id` returns the profile
+plus their active classes in one response, so the frontend's trainer page
+doesn't have to filter the full resource list client-side.
+
 ## Project structure
 
 ```
@@ -171,9 +183,10 @@ frontend/       # React + Vite customer web app (see below)
 ## Frontend
 
 `frontend/` is a React + Vite app covering the customer-facing flow: register/
-log in, browse and search resources, pick an available slot, pay with Stripe
-Elements, and view/cancel bookings. Staff/admin actions (managing resources,
-analytics) aren't in the UI — use `/api/docs` or the scripts above for those.
+log in, browse resources and trainers, pick an available slot, pay with
+Stripe Elements, and view/cancel bookings. Staff/admin actions (managing
+resources, analytics) aren't in the UI — use `/api/docs` or the scripts
+above for those.
 
 ```bash
 cd frontend
@@ -212,6 +225,11 @@ Notes:
 | `POST` | `/api/resources` | staff, admin |
 | `PATCH` | `/api/resources/:id` | owner, admin |
 | `DELETE` | `/api/resources/:id` | owner, admin |
+| `GET` | `/api/trainers` | public |
+| `GET` | `/api/trainers/:id` | public |
+| `POST` | `/api/trainers` | staff, admin |
+| `PATCH` | `/api/trainers/:id` | staff, admin |
+| `DELETE` | `/api/trainers/:id` | staff, admin |
 | `POST` | `/api/bookings` | authenticated |
 | `GET` | `/api/bookings/me` | authenticated |
 | `GET` | `/api/bookings/:id` | owner, staff, admin |

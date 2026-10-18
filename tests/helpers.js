@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const app = require('../src/app');
 const User = require('../src/models/User');
 const Resource = require('../src/models/Resource');
+const Trainer = require('../src/models/Trainer');
 const { signAccessToken } = require('../src/utils/tokens');
 
 let uniqueCounter = 0;
@@ -40,6 +41,17 @@ async function makeResource({ ownerId, ...overrides } = {}) {
   });
 }
 
+async function makeTrainer(overrides = {}) {
+  return Trainer.create({
+    name: 'Test Trainer',
+    title: 'Certified Instructor',
+    bio: 'A trainer created for tests, with a bio long enough to pass validation.',
+    specialties: ['Testing'],
+    yearsExperience: 5,
+    ...overrides,
+  });
+}
+
 /** An agent with the Authorization header pre-applied. */
 function as(token) {
   const authed = (method) => (url) =>
@@ -61,4 +73,4 @@ function futureSlot({ days = 2, hourUtc = 10 } = {}) {
   return date;
 }
 
-module.exports = { app, request, makeUser, makeResource, as, futureSlot, uniqueEmail };
+module.exports = { app, request, makeUser, makeResource, makeTrainer, as, futureSlot, uniqueEmail };
