@@ -30,7 +30,7 @@ export default function ResourcesPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await listResources({ search: debouncedSearch, category: 'class', limit: 50 });
+      const data = await listResources({ search: debouncedSearch, category: 'classes', limit: 50 });
       if (!signal.aborted) {
         setItems(data.items);
         setTotal(data.pagination.total);

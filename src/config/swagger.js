@@ -88,8 +88,8 @@ const options = {
             description: { type: 'string' },
             category: {
               type: 'string',
-              enum: ['class', 'self-care'],
-              default: 'class',
+              enum: ['classes', 'self-care'],
+              default: 'classes',
               description: 'Which browse page this shows up on',
             },
             capacity: { type: 'integer', minimum: 1, example: 12 },
