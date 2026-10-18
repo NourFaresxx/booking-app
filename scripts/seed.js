@@ -51,12 +51,13 @@ const TRAINERS = [
   {
     key: 'elena',
     name: 'Elena Osei',
-    title: 'Contemporary & Afrobeat Dance Instructor',
+    title: 'Contemporary & Hip Hop Dance Instructor',
     bio:
       'Elena trained with dance companies in Accra and New York before moving into ' +
-      'teaching. Her classes blend contemporary technique with Afrobeat ' +
-      'musicality — no dance background required, just a willingness to move.',
-    specialties: ['Dance', 'Afrobeat', 'Contemporary'],
+      'teaching. Her classes range from sharp, musical hip hop choreography to ' +
+      'flowing contemporary technique — no dance background required, just a ' +
+      'willingness to move.',
+    specialties: ['Dance', 'Hip Hop', 'Contemporary'],
     yearsExperience: 9,
   },
   {
@@ -116,14 +117,28 @@ const RESOURCES = [
     openingHours: WEEKDAYS.map((dayOfWeek) => ({ dayOfWeek, start: '17:00', end: '20:00' })),
   },
   {
-    name: 'Afrobeat Dance',
-    description: 'High-energy dance class blending Afrobeat and contemporary styles.',
+    name: 'Hip Hop Dance',
+    description:
+      'High-energy choreography set to hip hop beats - no experience needed, just ' +
+      'bring energy.',
     capacity: 20,
     price: 2200,
     durationMinutes: 55,
     timezone: 'Europe/Berlin',
     trainer: 'elena',
     openingHours: WEEKEND.map((dayOfWeek) => ({ dayOfWeek, start: '11:00', end: '14:00' })),
+  },
+  {
+    name: 'Contemporary Dance',
+    description:
+      'A flowing, floor-based class blending technique with free movement - open to ' +
+      'all levels.',
+    capacity: 16,
+    price: 2400,
+    durationMinutes: 60,
+    timezone: 'Europe/Berlin',
+    trainer: 'elena',
+    openingHours: WEEKEND.map((dayOfWeek) => ({ dayOfWeek, start: '15:00', end: '17:00' })),
   },
   {
     name: 'Kickboxing',
