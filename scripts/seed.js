@@ -126,44 +126,16 @@ const RESOURCES = [
     openingHours: WEEKEND.map((dayOfWeek) => ({ dayOfWeek, start: '11:00', end: '14:00' })),
   },
   {
-    name: 'Coached Strength Gym',
-    description: 'Small-group strength training with hands-on coaching, not just floor time.',
+    name: 'Kickboxing',
+    description:
+      'High-energy pad and bag work with coached technique - a full-body cardio and ' +
+      'strength session for all levels.',
     capacity: 8,
     price: 3000,
     durationMinutes: 75,
     timezone: 'Europe/Berlin',
     trainer: 'dave',
     openingHours: WEEKDAYS.map((dayOfWeek) => ({ dayOfWeek, start: '06:00', end: '09:00' })),
-  },
-  {
-    name: 'Meeting Room A',
-    description: 'Eight-person room with a display and whiteboard.',
-    capacity: 1,
-    price: 4000,
-    durationMinutes: 30,
-    timezone: 'Europe/Berlin',
-    trainer: null,
-    openingHours: WEEKDAYS.map((dayOfWeek) => ({ dayOfWeek, start: '09:00', end: '18:00' })),
-  },
-  {
-    name: 'Weekend Climbing Intro',
-    description: 'Beginner climbing session, equipment included.',
-    capacity: 6,
-    price: 3500,
-    durationMinutes: 90,
-    timezone: 'Europe/Berlin',
-    trainer: null,
-    openingHours: WEEKEND.map((dayOfWeek) => ({ dayOfWeek, start: '10:00', end: '16:00' })),
-  },
-  {
-    name: 'Recording Booth',
-    description: 'Treated booth, available around the clock.',
-    capacity: 1,
-    price: 1800,
-    durationMinutes: 60,
-    timezone: 'UTC',
-    trainer: null,
-    openingHours: [], // No windows means bookable at any hour.
   },
 ];
 
