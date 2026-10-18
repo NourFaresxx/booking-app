@@ -15,7 +15,7 @@ export default function NavBar() {
     <header className="nav">
       <Link to="/" className="nav-brand">
         <BrandMark className="nav-brand-mark" />
-        Booking
+        Rehab Sporting Club Gym
       </Link>
       <nav className="nav-links">
         <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : undefined)}>
