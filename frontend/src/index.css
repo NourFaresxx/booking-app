@@ -98,6 +98,15 @@ a {
 .app-shell {
   min-height: 100vh;
   display: flex;
+  align-items: stretch;
+}
+
+/* Everything that isn't the sidebar: main content, growing to push the
+   footer down, stacked in a column next to the sidebar rather than below it. */
+.app-body {
+  flex: 1;
+  min-width: 0; /* let content shrink/scroll instead of forcing the row wider */
+  display: flex;
   flex-direction: column;
 }
 
@@ -109,19 +118,26 @@ a {
   padding: 32px 24px 72px;
 }
 
-/* --- Nav --- */
+/* --- Sidebar ---
+   A true left-hand column at tablet width and up, sticky so it stays in
+   view while the main content scrolls. The small-screens block further
+   down turns this back into a horizontal top bar — a fixed 240px column
+   has nowhere to go on a phone. */
 
-.nav {
+.sidebar {
+  width: 240px;
+  flex: none;
   display: flex;
-  align-items: center;
-  gap: 28px;
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px);
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
   position: sticky;
   top: 0;
-  z-index: 10;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .nav-brand {
@@ -130,51 +146,64 @@ a {
   gap: 8px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--text);
   letter-spacing: -0.01em;
+  padding: 6px 10px 22px;
 }
 
 .nav-brand-mark {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   color: var(--primary);
   flex: none;
 }
 
 .nav-links {
   display: flex;
-  gap: 22px;
-  flex: 1;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .nav-links a {
+  display: block;
   color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
-  padding: 4px 0;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s ease;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .nav-links a:hover {
   color: var(--text);
+  background: var(--neutral-bg);
 }
 
 .nav-links a.active {
-  color: var(--text);
-  border-bottom-color: var(--primary);
+  color: var(--primary-hover);
+  background: var(--primary-soft);
+  border-left-color: var(--primary);
 }
 
 .nav-auth {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-auth .btn {
+  width: 100%;
 }
 
 .nav-user {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
+  padding: 0 2px;
 }
 
 /* --- Buttons --- */
@@ -1330,27 +1359,72 @@ a {
   background: rgba(0, 0, 0, 0.1);
 }
 
-/* --- Small screens --- */
+/* --- Small screens ---
+   Below this, a fixed 240px sidebar has nowhere to go, so it collapses back
+   into the horizontal top bar the site used before the sidebar existed. */
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
   .app-main {
     padding: 20px 16px 56px;
   }
 
-  .nav {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
     flex-wrap: wrap;
+    align-items: center;
     gap: 10px 16px;
     padding: 12px 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+
+  .nav-brand {
+    padding: 0;
   }
 
   .nav-links {
+    flex-direction: row;
+    flex-wrap: wrap;
     order: 3;
     flex-basis: 100%;
-    gap: 18px;
+    gap: 4px 18px;
+  }
+
+  .nav-links a {
+    padding: 4px 0;
+    border-radius: 0;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav-links a.active {
+    background: none;
+    border-left-color: transparent;
+    border-bottom-color: var(--primary);
   }
 
   .nav-auth {
-    margin-left: auto;
+    margin: 0 0 0 auto;
+    padding-top: 0;
+    border-top: none;
+    flex-direction: row;
+    width: auto;
+  }
+
+  .nav-auth .btn {
+    width: auto;
   }
 
   .hero {

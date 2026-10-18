@@ -2,7 +2,9 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import BrandMark from './BrandMark';
 
-export default function NavBar() {
+const linkClass = ({ isActive }) => (isActive ? 'active' : undefined);
+
+export default function Sidebar() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -12,35 +14,34 @@ export default function NavBar() {
   }
 
   return (
-    <header className="nav">
+    <aside className="sidebar">
       <Link to="/" className="nav-brand">
         <BrandMark className="nav-brand-mark" />
         Rehab Sporting Club Gym
       </Link>
+
       <nav className="nav-links">
-        <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : undefined)}>
-          Browse
+        <NavLink to="/" end className={linkClass}>
+          Classes
         </NavLink>
-        <NavLink to="/self-care" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+        <NavLink to="/self-care" className={linkClass}>
           Self Care
         </NavLink>
-        <NavLink to="/trainers" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+        <NavLink to="/trainers" className={linkClass}>
           Trainers
         </NavLink>
         {isAuthenticated && (
-          <NavLink to="/bookings" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+          <NavLink to="/bookings" className={linkClass}>
             My bookings
           </NavLink>
         )}
         {isAuthenticated && ['staff', 'admin'].includes(user.role) && (
-          <NavLink
-            to="/admin"
-            className={({ isActive }) => (isActive ? 'active' : undefined)}
-          >
+          <NavLink to="/admin" className={linkClass}>
             Admin
           </NavLink>
         )}
       </nav>
+
       <div className="nav-auth">
         {isAuthenticated ? (
           <>
@@ -60,6 +61,6 @@ export default function NavBar() {
           </>
         )}
       </div>
-    </header>
+    </aside>
   );
 }

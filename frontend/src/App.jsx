@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import NavBar from './components/NavBar';
+import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/AdminLayout';
@@ -24,52 +24,54 @@ const ADMIN_ROLES = ['staff', 'admin'];
 export default function App() {
   return (
     <div className="app-shell">
-      <NavBar />
-      <main className="app-main">
-        <Routes>
-          <Route path="/" element={<ResourcesPage />} />
-          <Route path="/resources/:id" element={<ResourceDetailPage />} />
-          <Route path="/self-care" element={<SelfCarePage />} />
-          <Route path="/trainers" element={<TrainersPage />} />
-          <Route path="/trainers/:id" element={<TrainerDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute>
-                <MyBookingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={ADMIN_ROLES}>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AdminDashboardPage />} />
-            <Route path="classes" element={<AdminClassesPage />} />
-            <Route path="classes/new" element={<ClassFormPage />} />
-            <Route path="classes/:id/edit" element={<ClassFormPage />} />
-            <Route path="trainers" element={<AdminTrainersPage />} />
-            <Route path="trainers/new" element={<TrainerFormPage />} />
-            <Route path="trainers/:id/edit" element={<TrainerFormPage />} />
-          </Route>
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </main>
-      <Footer />
+      <Sidebar />
+      <div className="app-body">
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<ResourcesPage />} />
+            <Route path="/resources/:id" element={<ResourceDetailPage />} />
+            <Route path="/self-care" element={<SelfCarePage />} />
+            <Route path="/trainers" element={<TrainersPage />} />
+            <Route path="/trainers/:id" element={<TrainerDetailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bookings"
+              element={
+                <ProtectedRoute>
+                  <MyBookingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={ADMIN_ROLES}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="classes" element={<AdminClassesPage />} />
+              <Route path="classes/new" element={<ClassFormPage />} />
+              <Route path="classes/:id/edit" element={<ClassFormPage />} />
+              <Route path="trainers" element={<AdminTrainersPage />} />
+              <Route path="trainers/new" element={<TrainerFormPage />} />
+              <Route path="trainers/:id/edit" element={<TrainerFormPage />} />
+            </Route>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 }
