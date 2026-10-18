@@ -14,6 +14,8 @@ const openingHourSchema = z
     message: 'end must be after start; split an overnight window into two same-day windows',
   });
 
+const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'must be a valid id');
+
 const createResourceSchema = z.object({
   name: z.string().min(2).max(120),
   description: z.string().max(2000).optional(),
@@ -24,6 +26,8 @@ const createResourceSchema = z.object({
   openingHours: z.array(openingHourSchema).max(50).optional(),
   timezone: z.string().min(1).max(64).optional(),
   isActive: z.boolean().optional(),
+  // Who teaches this class, if anyone. null clears an existing assignment.
+  trainerId: objectId.nullable().optional(),
 });
 
 const updateResourceSchema = createResourceSchema

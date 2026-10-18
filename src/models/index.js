@@ -4,6 +4,7 @@
 module.exports = {
   User: require('./User'),
   Resource: require('./Resource'),
+  Trainer: require('./Trainer'),
   Booking: require('./Booking'),
   BookingSlot: require('./BookingSlot'),
   WebhookEvent: require('./WebhookEvent'),

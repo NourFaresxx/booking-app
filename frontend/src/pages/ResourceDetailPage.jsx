@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getResource, getAvailability } from '../api/resources';
 import { useAuth } from '../context/AuthContext';
 import SlotPicker from '../components/SlotPicker';
@@ -99,6 +99,12 @@ export default function ResourceDetailPage() {
       <div className="resource-detail-header">
         <div>
           <h1>{resource.name}</h1>
+          {resource.trainerId?.name && (
+            <p className="resource-detail-trainer">
+              with{' '}
+              <Link to={`/trainers/${resource.trainerId._id}`}>{resource.trainerId.name}</Link>
+            </p>
+          )}
           {resource.description && <p className="resource-detail-desc">{resource.description}</p>}
         </div>
         <div className="resource-detail-price">
