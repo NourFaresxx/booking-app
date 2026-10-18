@@ -85,7 +85,7 @@ const TRAINERS = [
 ];
 
 // `trainer` references a TRAINERS[].key, resolved to an ObjectId at seed
-// time. `category` defaults to 'class' on the schema, but is written
+// time. `category` defaults to 'classes' on the schema, but is written
 // explicitly here anyway — the upsert below uses raw $set, which bypasses
 // Mongoose's schema defaults (those only apply when a document is
 // hydrated/created through the app, not to a server-side query filter
@@ -94,7 +94,7 @@ const RESOURCES = [
   {
     name: 'Morning Yoga',
     description: 'A gentle 60-minute flow to start the day.',
-    category: 'class',
+    category: 'classes',
     capacity: 12,
     price: 2500,
     durationMinutes: 60,
@@ -105,7 +105,7 @@ const RESOURCES = [
   {
     name: 'Pilates Fundamentals',
     description: 'Mat Pilates focused on core strength and control. All levels welcome.',
-    category: 'class',
+    category: 'classes',
     capacity: 10,
     price: 2800,
     durationMinutes: 50,
@@ -116,7 +116,7 @@ const RESOURCES = [
   {
     name: 'CrossFit WOD',
     description: 'Coached workout of the day — scaled for every fitness level.',
-    category: 'class',
+    category: 'classes',
     capacity: 14,
     price: 3200,
     durationMinutes: 60,
@@ -129,7 +129,7 @@ const RESOURCES = [
     description:
       'High-energy choreography set to hip hop beats - no experience needed, just ' +
       'bring energy.',
-    category: 'class',
+    category: 'classes',
     capacity: 20,
     price: 2200,
     durationMinutes: 55,
@@ -142,7 +142,7 @@ const RESOURCES = [
     description:
       'A flowing, floor-based class blending technique with free movement - open to ' +
       'all levels.',
-    category: 'class',
+    category: 'classes',
     capacity: 16,
     price: 2400,
     durationMinutes: 60,
@@ -155,7 +155,7 @@ const RESOURCES = [
     description:
       'High-energy pad and bag work with coached technique - a full-body cardio and ' +
       'strength session for all levels.',
-    category: 'class',
+    category: 'classes',
     capacity: 8,
     price: 3000,
     durationMinutes: 75,

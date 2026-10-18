@@ -13,17 +13,17 @@ describe('GET /api/resources', () => {
     expect(res.body.pagination).toMatchObject({ page: 1, total: 1, pages: 1 });
   });
 
-  it('defaults new resources to the "class" category', async () => {
+  it('defaults new resources to the "classes" category', async () => {
     const resource = await makeResource();
-    expect(resource.category).toBe('class');
+    expect(resource.category).toBe('classes');
   });
 
   it('filters by category', async () => {
     const { user } = await makeUser({ role: 'staff' });
-    await makeResource({ ownerId: user._id, name: 'Yoga', category: 'class' });
+    await makeResource({ ownerId: user._id, name: 'Yoga', category: 'classes' });
     await makeResource({ ownerId: user._id, name: 'Sauna', category: 'self-care' });
 
-    const classes = await request(app).get('/api/resources?category=class');
+    const classes = await request(app).get('/api/resources?category=classes');
     expect(classes.body.items.map((r) => r.name)).toEqual(['Yoga']);
 
     const selfCare = await request(app).get('/api/resources?category=self-care');
@@ -121,7 +121,7 @@ describe('GET /api/resources/:id', () => {
 });
 
 describe('POST /api/resources', () => {
-  it('accepts an explicit category and defaults to "class" when omitted', async () => {
+  it('accepts an explicit category and defaults to "classes" when omitted', async () => {
     const staff = await makeUser({ role: 'staff' });
 
     const withCategory = await as(staff.token)
@@ -132,7 +132,7 @@ describe('POST /api/resources', () => {
     const withoutCategory = await as(staff.token)
       .post('/api/resources')
       .send({ name: 'Spin', capacity: 10, price: 2000, durationMinutes: 45 });
-    expect(withoutCategory.body.category).toBe('class');
+    expect(withoutCategory.body.category).toBe('classes');
   });
 
   it('rejects an unknown category', async () => {

@@ -12,15 +12,15 @@ const openingHourSchema = new mongoose.Schema(
 );
 
 // What kind of offering this is, for grouping on separate browse pages
-// (Browse = 'class', Self Care = 'self-care'). Not a hard taxonomy — just
+// (Browse = 'classes', Self Care = 'self-care'). Not a hard taxonomy — just
 // enough to keep a spa session from showing up next to a CrossFit class.
-const RESOURCE_CATEGORIES = ['class', 'self-care'];
+const RESOURCE_CATEGORIES = ['classes', 'self-care'];
 
 const resourceSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
-    category: { type: String, enum: RESOURCE_CATEGORIES, default: 'class' },
+    category: { type: String, enum: RESOURCE_CATEGORIES, default: 'classes' },
     capacity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true, min: 0 }, // in cents
     currency: { type: String, default: 'usd', lowercase: true, trim: true },

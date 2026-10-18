@@ -27,7 +27,7 @@ const router = express.Router();
  *         description: Full-text search over name and description
  *       - in: query
  *         name: category
- *         schema: { type: string, enum: [class, self-care] }
+ *         schema: { type: string, enum: [classes, self-care] }
  *         description: Filter to one offering category (Browse vs. Self Care)
  *       - in: query
  *         name: minPrice

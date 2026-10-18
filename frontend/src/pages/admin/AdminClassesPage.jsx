@@ -4,7 +4,7 @@ import { listResources, updateResource } from '../../api/resources';
 import ErrorMessage from '../../components/ErrorMessage';
 import { formatMoney } from '../../lib/formatters';
 
-const CATEGORY_LABELS = { class: 'Class', 'self-care': 'Self Care' };
+const CATEGORY_LABELS = { classes: 'Classes', 'self-care': 'Self Care' };
 
 export default function AdminClassesPage() {
   const [items, setItems] = useState([]);
@@ -60,7 +60,7 @@ export default function AdminClassesPage() {
             aria-label="Filter by category"
           >
             <option value="">All categories</option>
-            <option value="class">Class</option>
+            <option value="classes">Classes</option>
             <option value="self-care">Self Care</option>
           </select>
           <label className="inline-check">
