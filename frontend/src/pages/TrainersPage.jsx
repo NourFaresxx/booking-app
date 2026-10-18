@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { listTrainers } from '../api/trainers';
 import TrainerCard from '../components/TrainerCard';
 import ErrorMessage from '../components/ErrorMessage';
+import SkeletonGrid from '../components/SkeletonGrid';
 
 function useDebouncedValue(value, delayMs) {
   const [debounced, setDebounced] = useState(value);
@@ -62,7 +63,7 @@ export default function TrainersPage() {
       <ErrorMessage error={error} />
 
       {loading ? (
-        <p className="page-loading">Loading…</p>
+        <SkeletonGrid count={6} />
       ) : items.length === 0 ? (
         <p className="empty-state">No trainers found.</p>
       ) : (

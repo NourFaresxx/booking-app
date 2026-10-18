@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listResources } from '../api/resources';
+import { listTrainers } from '../api/trainers';
 import ResourceCard from '../components/ResourceCard';
 import ErrorMessage from '../components/ErrorMessage';
+import Hero from '../components/Hero';
+import SkeletonGrid from '../components/SkeletonGrid';
 
 // Debounced so every keystroke in the search box doesn't fire a request.
 function useDebouncedValue(value, delayMs) {
@@ -18,6 +21,8 @@ export default function ResourcesPage() {
   const debouncedSearch = useDebouncedValue(search, 300);
 
   const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(null);
+  const [trainerCount, setTrainerCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,7 +31,10 @@ export default function ResourcesPage() {
     setError(null);
     try {
       const data = await listResources({ search: debouncedSearch, limit: 50 });
-      if (!signal.aborted) setItems(data.items);
+      if (!signal.aborted) {
+        setItems(data.items);
+        setTotal(data.pagination.total);
+      }
     } catch (err) {
       if (!signal.aborted) setError(err);
     } finally {
@@ -41,26 +49,36 @@ export default function ResourcesPage() {
     return () => controller.abort();
   }, [load]);
 
+  // Fetched once, independent of the search box — this is the "how many
+  // trainers do we have" stat for the hero, not a filtered count.
+  useEffect(() => {
+    const controller = new AbortController();
+    listTrainers({ limit: 1 })
+      .then((data) => {
+        if (!controller.signal.aborted) setTrainerCount(data.pagination.total);
+      })
+      .catch(() => {
+        // A failed stat fetch just means the hero skips this number — not
+        // worth surfacing as a page-level error.
+      });
+    return () => controller.abort();
+  }, []);
+
   return (
     <div className="page">
-      <div className="page-header">
-        <h1>Browse resources</h1>
-        <input
-          type="search"
-          placeholder="Search by name or description…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
-          aria-label="Search resources"
-        />
-      </div>
+      <Hero
+        search={search}
+        onSearchChange={setSearch}
+        classCount={total}
+        trainerCount={trainerCount}
+      />
 
       <ErrorMessage error={error} />
 
       {loading ? (
-        <p className="page-loading">Loading…</p>
+        <SkeletonGrid count={6} />
       ) : items.length === 0 ? (
-        <p className="empty-state">No resources found.</p>
+        <p className="empty-state">No classes found.</p>
       ) : (
         <div className="resource-grid">
           {items.map((resource) => (
